@@ -1,0 +1,39 @@
+## DEMO STEP 1 — PWN REQUEST (vulnerable)
+##
+## This reproduces the classic "pwn request" on CURRENT GitHub.
+## actions/checkout v7 blocks fork-PR checkout by default (see workflow 02),
+## so to show the vulnerable *behavior* we explicitly opt out with
+## `allow-unsafe-pr-checkout: true`. That flag is deliberately loud so it
+## stands out in review and static analysis — which is the point.
+##
+## What happens: pull_request_target runs with the BASE repo's secrets and
+## GITHUB_TOKEN, we check out the UNREVIEWED fork head, then run its code
+## via `npm test`. The fork's code now runs with our secrets. Game over.
+##
+name: 01 - PR Check (vulnerable, opted out)
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout UNREVIEWED fork code (unsafe opt-out)
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          allow-unsafe-pr-checkout: true   # <-- reintroduces the vulnerability
+
+      - name: Install
+        run: npm ci || npm install || true
+
+      - name: Run tests (this executes attacker-controlled code)
+        run: npm test
+        env:
+          # Stand-in for a real CI secret (deploy key, npm token, cloud creds).
+          FAKE_DEPLOY_TOKEN: ${{ secrets.FAKE_DEPLOY_TOKEN }}

@@ -1,0 +1,34 @@
+## DEMO STEP 2 — SECURE BY DEFAULT (blocked)
+##
+## Identical to workflow 01, but WITHOUT the opt-out. On actions/checkout v7
+## (and the backport to all supported majors as of July 2026), checking out a
+## fork PR head/merge ref inside pull_request_target is refused by default.
+##
+## Expected result: the "Checkout" step FAILS, the job stops, and the
+## attacker's code never runs.
+name: 02 - PR Check (protected default)
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout fork code (refused by default on v7)
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          # No allow-unsafe-pr-checkout -> checkout refuses the fork ref.
+
+      - name: Install
+        run: npm ci || npm install || true
+
+      - name: Run tests (never reached)
+        run: npm test
+        env:
+          FAKE_DEPLOY_TOKEN: ${{ secrets.FAKE_DEPLOY_TOKEN }}

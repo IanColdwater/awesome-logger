@@ -1,0 +1,39 @@
+## DEMO STEP 3 — THE BYPASS (ope)
+##
+## Here the maintainer "did the right thing": actions/checkout is on v7 with
+## NO unsafe opt-out, so the checkout protection is fully in force. But they
+## fetch the PR a different way — `gh pr checkout` in a run: step — and then
+## run it. The v7 protection only covers actions/checkout inputs; it does NOT
+## cover a run block that uses git or the gh CLI to pull untrusted code.
+## (GitHub's own changelog calls this out as explicitly not covered.)
+##
+## Expected result: attacker code runs anyway.
+##
+name: 03 - PR Check (checkout safe, but bypassed)
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout base repo safely (v7, default)
+        uses: actions/checkout@v7
+
+      - name: Fetch the PR the "other" way (bypasses the protection)
+        run: gh pr checkout ${{ github.event.pull_request.number }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Install
+        run: npm ci || npm install || true
+
+      - name: Run tests (executes attacker code again)
+        run: npm test
+        env:
+          FAKE_DEPLOY_TOKEN: ${{ secrets.FAKE_DEPLOY_TOKEN }}

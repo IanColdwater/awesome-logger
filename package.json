@@ -1,0 +1,10 @@
+{
+  "name": "awesome-logger",
+  "version": "1.0.0",
+  "description": "A tiny demo library, standing in for a popular OSS package with CI.",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test/basic.test.js"
+  },
+  "license": "MIT"
+}
